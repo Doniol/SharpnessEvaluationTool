@@ -5,15 +5,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AlgorithmClass
+namespace Sharpness
 {
     public class TestAlgorithm
     /*  Class for handling test algorithms. */
     {
         private Func<string, double> _method;
-        public IDictionary<string, double> Results { get; set; }
+        public Dictionary<string, double> Results { get; set; }
         public string Name { get; }
-        private Stopwatch _stopWatch { get; set; }
+        private Stopwatch _stopWatch;
         public double TimeSpan { get; set; }
 
         public TestAlgorithm(Func<string, double> method, string name)
@@ -23,7 +23,7 @@ namespace AlgorithmClass
         {
             this._method = method;
             this.Name = name;
-            this.Results = null;
+            this.Results = new Dictionary<string, double>();
         }
 
         public void ExecuteAlgorithm(string input)
@@ -34,20 +34,10 @@ namespace AlgorithmClass
             this._stopWatch = new Stopwatch();
             this._stopWatch.Start();
             // Keep dictionary up-to-date with all the results from the current algorithm
-            if (this.Results == null)
-            {
-                this.Results = new Dictionary<string, double> {
-                    { input, this._method(input) }
-                };
-            }
-            else
-            {
-                this.Results.Add(input, this._method(input));
-            }
+            this.Results.Add(input, this._method(input));
             // Stop stopwatch, and add time to internal counter
             this._stopWatch.Stop();
             this.TimeSpan += this._stopWatch.Elapsed.TotalMilliseconds;
-            Console.WriteLine(this._stopWatch.Elapsed.TotalMilliseconds);
         }
     }
 }

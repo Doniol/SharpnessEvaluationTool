@@ -1,8 +1,7 @@
 ﻿using System;
 using System.IO;
-using TestAlgorithm = AlgorithmClass.TestAlgorithm;
 
-namespace SetClass
+namespace Sharpness
 {
     public class TestSet
     /*  Class for handling testsets. Contains all paths to relevant
@@ -14,7 +13,8 @@ namespace SetClass
         public string Background { get; set; }
         public string Name { get; set; }
         public string Results { get; set; }
-        public global::AlgorithmClass.TestAlgorithm[] Algorithms { get; set; }
+        public TestAlgorithm[] Algorithms { get; set; }
+        public int MissingParticle { get; set; }
 
         public TestSet(string directory, string name)
         /*  Select base directory for the testset. Within this directory, all
