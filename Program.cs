@@ -1,24 +1,12 @@
-﻿using System;
-using OpenCvSharp;
+﻿using OpenCvSharp;
+using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Drawing.Printing;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Data.SqlClient;
-using Point = OpenCvSharp.Point;
-using static System.Net.Mime.MediaTypeNames;
-using System.Collections.Specialized;
-using System.Diagnostics;
-using System.Data.SqlTypes;
-using AForge;
-using AForge.Imaging;
-using AForge.Imaging.Filters;
-using System.Runtime.Remoting.Channels;
 using static Functions.Functions;
-using testSet = setClass.testSet;
-using testAlgorithm = algorithmClass.testAlgorithm;
+using Point = OpenCvSharp.Point;
+using AlgorithmClass;
 
 namespace Sharpness
 {
@@ -30,68 +18,68 @@ namespace Sharpness
             and provides a display of the results in both numerical, and visual, ways */
         {
             // Define all image directories
-            string directory = "C:\\Users\\danie\\Desktop\\Sharpness Tests\\Sharpness";
-            testSet small_set = new testSet(directory + Path.DirectorySeparatorChar 
+            string directory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+            global::SetClass.TestSet smallSet = new global::SetClass.TestSet(directory + Path.DirectorySeparatorChar 
                 + "small_set", "small");
-            testSet set_50_30_045 = new testSet(directory + Path.DirectorySeparatorChar 
+            global::SetClass.TestSet set_50_30_045 = new global::SetClass.TestSet(directory + Path.DirectorySeparatorChar 
                 + "50_30_0,45_set", "50");
-            testSet set_60_30_045 = new testSet(directory + Path.DirectorySeparatorChar 
+            global::SetClass.TestSet set_60_30_045 = new global::SetClass.TestSet(directory + Path.DirectorySeparatorChar 
                 + "60_30_0,45_set", "60");
-            testSet set_70_30_045 = new testSet(directory + Path.DirectorySeparatorChar 
+            global::SetClass.TestSet set_70_30_045 = new global::SetClass.TestSet(directory + Path.DirectorySeparatorChar 
                 + "70_30_0,45_set", "70");
-            testSet[] allSets = new testSet[4] { small_set, set_50_30_045, set_60_30_045, 
+            global::SetClass.TestSet[] allSets = new global::SetClass.TestSet[4] { smallSet, set_50_30_045, set_60_30_045, 
                 set_70_30_045 };
 
             // Select whether to run a quick test, or not
-            bool full_test = false;
-            if (full_test)
+            bool fullTest = false;
+            if (fullTest)
             {
                 // Loop through all testsets
-                foreach(testSet set in allSets)
+                foreach(global::SetClass.TestSet set in allSets)
                 {
-                    Console.WriteLine(set.name);
+                    Console.WriteLine(set.Name);
                     // Run all functions on selected set
-                    FunctionTesting.FunctionTesting.testFunction(set);
+                    FunctionTesting.FunctionTesting.TestFunction(set);
 
                     // Loop through all tested algorithms
-                    foreach (var algo in small_set.algorithms)
+                    foreach (TestAlgorithm algo in smallSet.Algorithms)
                     {
                         // Calculate average score of the algorithm for this set
                         double total = 0;
                         int i = 0;
-                        foreach (KeyValuePair<string, double> kvp in algo.results)
+                        foreach (KeyValuePair<string, double> kvp in algo.Results)
                         {
                             total += kvp.Value;
                             i += 1;
                         }
-                        Console.WriteLine($"{algo.name}: {total / i}");
+                        Console.WriteLine($"{algo.Name}: {total / i}");
                     }
                     Console.WriteLine("____________________________________");
                     // Visualise results by sorting them according to given scores
-                    FunctionTesting.FunctionTesting.rankResults(set);
+                    FunctionTesting.FunctionTesting.RankResults(set);
                 }
             }
             else
             {
                 // Smaller testset
-                FunctionTesting.FunctionTesting.testFunction(small_set);
+                FunctionTesting.FunctionTesting.TestFunction(smallSet);
 
                 // Loop through all tested algorithms
-                foreach (var algo in small_set.algorithms)
+                foreach (TestAlgorithm algo in smallSet.Algorithms)
                 {
                     // Calculate average score of the algorithm for this set
                     double total = 0;
                     int i = 0;
-                    foreach (KeyValuePair<string, double> kvp in algo.results)
+                    foreach (KeyValuePair<string, double> kvp in algo.Results)
                     {
                         total += kvp.Value;
                         i += 1;
                     }
-                    Console.WriteLine($"{algo.name}: {total / i}");
+                    Console.WriteLine($"{algo.Name}: {algo.TimeSpan / i}; {total / i}");
                 }
                 Console.WriteLine("____________________________________");
                 // Visualise results by sorting them according to given scores
-                FunctionTesting.FunctionTesting.rankResults(small_set);
+                FunctionTesting.FunctionTesting.RankResults(smallSet);
             }
         }
     }
@@ -102,66 +90,66 @@ namespace FunctionTesting
 {
     class FunctionTesting
     {
-        public static void testFunction(testSet set)
+        public static void TestFunction(global::SetClass.TestSet set)
         /*  This function tests all created functions using the given testset */
         {
             // Create list for all the to be executed algorithms
-            testAlgorithm al1 = new testAlgorithm(laplace, "laplace");
-            testAlgorithm al2 = new testAlgorithm(blurLaplace, "blurLaplace");
-            testAlgorithm al3 = new testAlgorithm(blurLaplaceSum, "blurLaplaceSum");
-            testAlgorithm al4 = new testAlgorithm(blurLaplaceVar, "blurLaplaceVar");
-            testAlgorithm al5 = new testAlgorithm(specialSobel, "specialSobel");
-            testAlgorithm al6 = new testAlgorithm(baseSobel, "baseSobel");
-            testAlgorithm al7 = new testAlgorithm(tenegradSobel, "tenegradSobel");
-            testAlgorithm al8 = new testAlgorithm(sobelVariance, "sobelVariance");
-            testAlgorithm al9 = new testAlgorithm(canny, "canny");
-            testAlgorithm al10 = new testAlgorithm(greyVariance, "greyVariance");
-            testAlgorithm al11 = new testAlgorithm(edgeWidth, "edgeWidth");
-            testAlgorithm al12 = new testAlgorithm(existingSharpness, "existingSharpness");
-            testAlgorithm al13 = new testAlgorithm(existingOldSharpness, "existingOldSharpness");
+            global::AlgorithmClass.TestAlgorithm al1 = new global::AlgorithmClass.TestAlgorithm(Laplace, "laplace");
+            global::AlgorithmClass.TestAlgorithm al2 = new global::AlgorithmClass.TestAlgorithm(BlurLaplace, "blurLaplace");
+            global::AlgorithmClass.TestAlgorithm al3 = new global::AlgorithmClass.TestAlgorithm(BlurLaplaceSum, "blurLaplaceSum");
+            global::AlgorithmClass.TestAlgorithm al4 = new global::AlgorithmClass.TestAlgorithm(BlurLaplaceVar, "blurLaplaceVar");
+            global::AlgorithmClass.TestAlgorithm al5 = new global::AlgorithmClass.TestAlgorithm(SpecialSobel, "specialSobel");
+            global::AlgorithmClass.TestAlgorithm al6 = new global::AlgorithmClass.TestAlgorithm(BaseSobel, "baseSobel");
+            global::AlgorithmClass.TestAlgorithm al7 = new global::AlgorithmClass.TestAlgorithm(TenegradSobel, "tenegradSobel");
+            global::AlgorithmClass.TestAlgorithm al8 = new global::AlgorithmClass.TestAlgorithm(SobelVariance, "sobelVariance");
+            global::AlgorithmClass.TestAlgorithm al9 = new global::AlgorithmClass.TestAlgorithm(Canny, "canny");
+            global::AlgorithmClass.TestAlgorithm al10 = new global::AlgorithmClass.TestAlgorithm(GreyVariance, "greyVariance");
+            global::AlgorithmClass.TestAlgorithm al11 = new global::AlgorithmClass.TestAlgorithm(EdgeWidth, "edgeWidth");
+            global::AlgorithmClass.TestAlgorithm al12 = new global::AlgorithmClass.TestAlgorithm(ExistingSharpness, "existingSharpness");
+            global::AlgorithmClass.TestAlgorithm al13 = new global::AlgorithmClass.TestAlgorithm(ExistingOldSharpness, "existingOldSharpness");
 
-            testAlgorithm[] allAlgo = new testAlgorithm[13] { al1, al2, 
+            global::AlgorithmClass.TestAlgorithm[] allAlgo = new global::AlgorithmClass.TestAlgorithm[13] { al1, al2, 
                 al3, al4, al5, al6, al7, al8, al9, al10, al11, al12, al13 };
 
             // Loop through all images in given set
-            foreach (string uncropped in Directory.GetFiles(set.uncrop))
+            foreach (string uncropped in Directory.GetFiles(set.Uncrop))
             {
                 // Crop selected image
-                string imageDst = set.crop + Path.DirectorySeparatorChar + 
+                string imageDst = set.Crop + Path.DirectorySeparatorChar + 
                     uncropped.Split(Path.DirectorySeparatorChar).Last();
                 imageDst = imageDst.Replace("Uncropped", "Cropped");
-                cropImage(uncropped, imageDst, set.background);
+                CropImage(uncropped, imageDst, set.Background);
                 // Loop through all selected functions
-                foreach(var algo in allAlgo)
+                foreach(TestAlgorithm algo in allAlgo)
                 {
-                    Console.WriteLine(algo.name);
-                    algo.executeAlgorithm(imageDst);
+                    Console.WriteLine(algo.Name);
+                    algo.ExecuteAlgorithm(imageDst);
                 }
             }
             // Store algorithms and their results within given set
-            set.algorithms = allAlgo;
+            set.Algorithms = allAlgo;
         }
     
-        public static void rankResults(testSet set)
+        public static void RankResults(global::SetClass.TestSet set)
         /*  Function for creating new folders with images for each tested
             algorithm. Theses images are the same ones that have been tested,
             but have now been rearranged and renamed to reflect their ranking
             by the algorithm. */
         {
             // Loop through all tested algorithms
-            foreach (var algo in set.algorithms)
+            foreach (TestAlgorithm algo in set.Algorithms)
             {
                 // Create new folder for selected algorithm
-                string newDir = set.results + Path.DirectorySeparatorChar + 
-                    $"{algo.name}";
+                string newDir = set.Results + Path.DirectorySeparatorChar + 
+                    $"{algo.Name}";
                 if (Directory.Exists(newDir))
                 {
                     Directory.Delete(newDir, true);
                 }
                 Directory.CreateDirectory(newDir);
                 // Sort algorithm results by value
-                var sortedDict = algo.results.OrderBy(x => x.Value).
-                    ToDictionary(x => x.Key, x => x.Value);
+                IDictionary<string, double> sortedDict = algo.Results.
+                    OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
 
                 // Loop through the sorted images within the dictionary
                 int i = 0;
@@ -176,7 +164,7 @@ namespace FunctionTesting
             }
         }
     
-        public static void cropImage(string image, string dst, string background, 
+        public static void CropImage(string image, string dst, string background, 
             int threshold=4)
         /*  This function crops given images to a (hopefully) smaller size.
             By vaguely detecting where within the image the particle is located,
@@ -211,13 +199,13 @@ namespace FunctionTesting
                 ThresholdTypes.Binary);
 
             // Finds contours in thresholded image
-            var contours = Cv2.FindContoursAsArray(buffer, RetrievalModes.External, 
+            Point[][] contours = Cv2.FindContoursAsArray(buffer, RetrievalModes.External, 
                 ContourApproximationModes.ApproxSimple);
 
             // Calculate the minimal boundingbox in which the image-particle fits
             Rect boundingBox = new Rect();
             // Loop through all detected contours, and update box to fit all of them
-            foreach (var contour in contours)
+            foreach (Point[] contour in contours)
             {
                 if (boundingBox.Width == 0)
                     boundingBox = Cv2.BoundingRect(contour);
@@ -230,7 +218,7 @@ namespace FunctionTesting
                 // Option 1: retry with lower threshold to have an easier time
                 //  finding particles; Sometimes results in larger images that 
                 //  take a helluva lot longer to process
-                cropImage(image, dst, background, threshold + 1);
+                CropImage(image, dst, background, threshold + 1);
                 // Option 2: do not crop image
                 //  Same issue as option 1, but worse
                 //src.SaveImage(dst);
@@ -256,7 +244,7 @@ namespace FunctionTesting
 
             // Crop image according to boundingbox
             // Copped image contains cropped version of original image
-            var croppedImage = new Mat(src, boundingBox);
+            Mat croppedImage = new Mat(src, boundingBox);
             croppedImage.SaveImage(dst);
         }
     }
@@ -268,7 +256,7 @@ namespace Functions
     internal class Functions
     {
         // Laplace focused
-        public static double laplace(string image)
+        public static double Laplace(string image)
         /*  Applies the standard laplacian function, without
             blurring, editing, or anything else. The return
             value consists of the squared standard deviation
@@ -277,58 +265,58 @@ namespace Functions
             // Source: https://pyimagesearch.com/2015/09/07/blur-detection-with-opencv/
             // Source :https://stackoverflow.com/questions/58005091/how-to-get-the-variance-of-laplacian-in-c-sharp
             // Grayscale
-            Mat image_color = Cv2.ImRead(image);
+            Mat imageColor = Cv2.ImRead(image);
             Mat src = new Mat();
-            Cv2.CvtColor(image_color, src, ColorConversionCodes.BGR2GRAY);
+            Cv2.CvtColor(imageColor, src, ColorConversionCodes.BGR2GRAY);
 
             Mat dst = new Mat();
             // Apply Lacplacian for edge detection
             Cv2.Laplacian(src, dst, MatType.CV_64F);
             // Get standard deviation of laplacian
-            Cv2.MeanStdDev(dst, out var _, out var stddev);
+            Cv2.MeanStdDev(dst, out Scalar _, out Scalar stddev);
             return stddev.Val0 * stddev.Val0;
         }
 
-        public static double blurLaplace(string image)
+        public static double BlurLaplace(string image)
         /*  Applies laplacian function after first blurring the
             given image using a median filter. The return value
             consists of the squared standard deviation of this
             laplacian. */
         {
             // Grayscale
-            Mat image_color = Cv2.ImRead(image);
+            Mat imageColor = Cv2.ImRead(image);
             Mat src = new Mat();
-            Cv2.CvtColor(image_color, src, ColorConversionCodes.BGR2GRAY);
+            Cv2.CvtColor(imageColor, src, ColorConversionCodes.BGR2GRAY);
 
             // Apply median blur for image smoothing/removing noise
-            var medianBlurredImage = src.MedianBlur(5);
+            Mat medianBlurredImage = src.MedianBlur(5);
             // Apply laplacian for edge detection
-            var laplacianImage = medianBlurredImage.Laplacian(MatType.CV_8U, 5);
+            Mat laplacianImage = medianBlurredImage.Laplacian(MatType.CV_8U, 5);
             // Get standard deviation of laplacian
             Cv2.MeanStdDev(laplacianImage, out Scalar _, out Scalar sd);
             return sd[0] * sd[0];
         }
 
-        public static double blurLaplaceSum(string image)
+        public static double BlurLaplaceSum(string image)
         /*  This function applies the laplacian method after blurring
             the given image using a median filter, and then returns
             the sum of the values within the resulting laplacian image. */
         {
             // Source: https://sci-hub.wf/10.1109/icpr.2000.903548
             // Grayscale
-            Mat image_color = Cv2.ImRead(image);
+            Mat imageColor = Cv2.ImRead(image);
             Mat src = new Mat();
-            Cv2.CvtColor(image_color, src, ColorConversionCodes.BGR2GRAY);
+            Cv2.CvtColor(imageColor, src, ColorConversionCodes.BGR2GRAY);
 
             // Apply median blur for image smoothing/removing noise
-            var medianBlurredImage = src.MedianBlur(5);
+            Mat medianBlurredImage = src.MedianBlur(5);
             // Apply laplacian for edge detection
-            var laplacianImage = medianBlurredImage.Laplacian(MatType.CV_8U, 5);
+            Mat laplacianImage = medianBlurredImage.Laplacian(MatType.CV_8U, 5);
 
             return Cv2.Sum(laplacianImage)[0];
         }
 
-        public static double blurLaplaceVar(string image)
+        public static double BlurLaplaceVar(string image)
         /*  This function applies the laplacian method after blurring
             the given image using a median filter. Afterwards it calculates
             the mean of the laplacian, and using this mean, the variance
@@ -336,14 +324,14 @@ namespace Functions
         {
             // Source: https://sci-hub.wf/10.1109/icpr.2000.903548
             // Grayscale
-            Mat image_color = Cv2.ImRead(image);
+            Mat imageColor = Cv2.ImRead(image);
             Mat src = new Mat();
-            Cv2.CvtColor(image_color, src, ColorConversionCodes.BGR2GRAY);
+            Cv2.CvtColor(imageColor, src, ColorConversionCodes.BGR2GRAY);
 
             // Apply median blur for image smoothing/removing noise
-            var medianBlurredImage = src.MedianBlur(5);
+            Mat medianBlurredImage = src.MedianBlur(5);
             // Apply laplacian for edge detection
-            var laplacianImage = medianBlurredImage.Laplacian(MatType.CV_8U, 5);
+            Mat laplacianImage = medianBlurredImage.Laplacian(MatType.CV_8U, 5);
             Bitmap lpImage = OpenCvSharp.Extensions.BitmapConverter.
                 ToBitmap(laplacianImage);
             // Get mean of laplacian
@@ -372,19 +360,19 @@ namespace Functions
         }
 
         // Sobel focused
-        public static double specialSobel(string image)
+        public static double SpecialSobel(string image)
         /*  This function applies the sobel method, using a special
             custom-made kernel/mask. The retuned sharpness-value is
             calculated by averaging the combined Sqrt of the results
             of both sobel operations. */
         {
             // Grayscale
-            Mat image_color = Cv2.ImRead(image);
+            Mat imageColor = Cv2.ImRead(image);
             Mat src = new Mat();
-            Cv2.CvtColor(image_color, src, ColorConversionCodes.BGR2GRAY);
+            Cv2.CvtColor(imageColor, src, ColorConversionCodes.BGR2GRAY);
 
             // Apply median blur
-            var medianBlurredImage = src.MedianBlur(5);
+            Mat medianBlurredImage = src.MedianBlur(5);
 
             // Convert to bitmap for custom Sobel operation
             Bitmap bitImage = OpenCvSharp.Extensions.BitmapConverter.
@@ -429,15 +417,15 @@ namespace Functions
             return sharpness;
         }
 
-        public static double baseSobel(string image)
+        public static double BaseSobel(string image)
         /*  Function that applies the basic sobel method for detecting
             edges, and uses this result to calculate image sharpness. */
         {
             // https://stackoverflow.com/questions/48751468/c-sharp-identify-blur-image-with-fft
             // Grayscale
-            Mat image_color = Cv2.ImRead(image);
+            Mat imageColor = Cv2.ImRead(image);
             Mat src = new Mat();
-            Cv2.CvtColor(image_color, src, ColorConversionCodes.BGR2GRAY);
+            Cv2.CvtColor(imageColor, src, ColorConversionCodes.BGR2GRAY);
 
             Mat Gx = new Mat();
             Mat Gy = new Mat();
@@ -454,7 +442,7 @@ namespace Functions
             return sumSq / (src.Size().Height * src.Size().Width);
         }
 
-        public static double tenegradSobel(string image)
+        public static double TenegradSobel(string image)
         /*  Apply the tenegrad sobel method. Unlike the regular sobel method,
             this one uses a threshold to determine which values are high enough
             to count for the result. The threshold is determined using the mean
@@ -462,9 +450,9 @@ namespace Functions
         {
             // Source: https://sci-hub.wf/10.1109/icpr.2000.903548
             // Grayscale
-            Mat image_color = Cv2.ImRead(image);
+            Mat imageColor = Cv2.ImRead(image);
             Mat src = new Mat();
-            Cv2.CvtColor(image_color, src, ColorConversionCodes.BGR2GRAY);
+            Cv2.CvtColor(imageColor, src, ColorConversionCodes.BGR2GRAY);
 
             Mat Gx = new Mat();
             Mat Gy = new Mat();
@@ -524,7 +512,7 @@ namespace Functions
             return totalTenegrad;
         }
 
-        public static double sobelVariance(string image)
+        public static double SobelVariance(string image)
         /*  This function uses the sobel variance to determine the sharpness
             of an image. Very similar to the tenegrad function, it instead 
             returns the variance, instead of the sum, of the pixels that 
@@ -532,9 +520,9 @@ namespace Functions
         {
             // Source: https://sci-hub.wf/10.1109/icpr.2000.903548
             // Grayscale
-            Mat image_color = Cv2.ImRead(image);
+            Mat imageColor = Cv2.ImRead(image);
             Mat src = new Mat();
-            Cv2.CvtColor(image_color, src, ColorConversionCodes.BGR2GRAY);
+            Cv2.CvtColor(imageColor, src, ColorConversionCodes.BGR2GRAY);
 
             Mat Gx = new Mat();
             Mat Gy = new Mat();
@@ -595,15 +583,15 @@ namespace Functions
         }
 
         // Canny focused
-        public static double canny(string image)
+        public static double Canny(string image)
         /*  This function applies the canny method of calculating edges,
             and uses this in concert with a custom threshold, to determine
             the sharpness of an image. */
         {
             // Grayscale
-            Mat image_color = Cv2.ImRead(image);
+            Mat imageColor = Cv2.ImRead(image);
             Mat src = new Mat();
-            Cv2.CvtColor(image_color, src, ColorConversionCodes.BGR2GRAY);
+            Cv2.CvtColor(imageColor, src, ColorConversionCodes.BGR2GRAY);
 
             // Mean gradient magnitude
             Mat Gx = new Mat();
@@ -611,9 +599,9 @@ namespace Functions
             // Apply Sobel
             Cv2.Sobel(src, Gx, MatType.CV_32F, 1, 0);
             Cv2.Sobel(src, Gy, MatType.CV_32F, 0, 1);
-            // TODO: Correctly combine sobels
-            Mat sobel = Gx + Gy;
-            Cv2.ConvertScaleAbs(sobel, sobel);
+            // Combine sobels
+            Mat sobel = new Mat();
+            Cv2.Magnitude(Gx, Gy, sobel);
             // Calculate mean and standard deviation
             Cv2.MeanStdDev(sobel, out Scalar mean, out Scalar stdDev);
 
@@ -629,16 +617,16 @@ namespace Functions
         }
 
         // Special
-        public static double greyVariance(string image)
+        public static double GreyVariance(string image)
         /*  This is a function that calculates the image sharpness through
             comparing the local variance in pixel intensity, to the global 
             variance in pixel intensity. */
         {
             // Source: https://sci-hub.wf/10.1109/icpr.2000.903548
             // Grayscale
-            Mat image_color = Cv2.ImRead(image);
+            Mat imageColor = Cv2.ImRead(image);
             Mat src = new Mat();
-            Cv2.CvtColor(image_color, src, ColorConversionCodes.BGR2GRAY);
+            Cv2.CvtColor(imageColor, src, ColorConversionCodes.BGR2GRAY);
 
             // Convert to bitmap for custom Sobel operation
             Bitmap bitImage = OpenCvSharp.Extensions.BitmapConverter.ToBitmap(src);
@@ -695,31 +683,32 @@ namespace Functions
             return globalVar;
         }
 
-        public static double edgeWidth(string image)
+        public static double EdgeWidth(string image)
         /*  This function attempts to determine image sharpness through the
             width of the edges within the image. */
         {
             // Based on file:///C:/Users/danie/Downloads/applsci-12-06712.pdf
             // Grayscale
-            Mat image_color = Cv2.ImRead(image);
+            Mat imageColor = Cv2.ImRead(image);
             Mat src = new Mat();
-            Cv2.CvtColor(image_color, src, ColorConversionCodes.BGR2GRAY);
+            Cv2.CvtColor(imageColor, src, ColorConversionCodes.BGR2GRAY);
             Mat Gx = new Mat();
             Mat Gy = new Mat();
             // Apply Sobel
             Cv2.Sobel(src, Gx, MatType.CV_32F, 1, 0);
             Cv2.Sobel(src, Gy, MatType.CV_32F, 0, 1);
-            // TODO: Correctly combine the sobels
-            Mat sobel = Gx + Gy;
-            sobel.ConvertTo(sobel, MatType.CV_8UC1);
+            // Combine sobels
+            Mat sobel = new Mat();
+            Cv2.Magnitude(Gx, Gy, sobel);
+            Cv2.ConvertScaleAbs(sobel, sobel);
 
             // Calculate lines within the image
-            var lines = Cv2.HoughLines(sobel, 1, Math.PI / 180, 50);
+            LineSegmentPolar[] lines = Cv2.HoughLines(sobel, 1, Math.PI / 180, 50);
             int edgeCount = 0;
             int edgeWidth = 0;
 
             // Loop through each individual line
-            foreach(var line in lines)
+            foreach(LineSegmentPolar line in lines)
             {
                 // Determine the location of the selected line
                 Point p1 = new Point();
@@ -745,24 +734,24 @@ namespace Functions
 
         // Existing pieces of code
 
-        public static double existingSharpness(string image)
+        public static double ExistingSharpness(string image)
         /*  Calculates the sharpness of an image through an already implemented
             method. It's basically the same as blurLaplace. */
         {
             // Source is old branch-code - CytoCV.cs
             // Grayscale
-            Mat image_color = Cv2.ImRead(image);
+            Mat imageColor = Cv2.ImRead(image);
             Mat src = new Mat();
-            Cv2.CvtColor(image_color, src, ColorConversionCodes.BGR2GRAY);
+            Cv2.CvtColor(imageColor, src, ColorConversionCodes.BGR2GRAY);
 
             // Apply Median filter using kernel size of 5
             // Kernel size of 5 probably means a 5x5 kernel
-            var medianBlurredImage = src.MedianBlur(5);
+            Mat medianBlurredImage = src.MedianBlur(5);
 
             // Apply Laplacian using kernel size of 5
             // The CV_8U, for argument ddepth, defines the type of data that is stored,
             //  in this Unsigned Char; It has nothing to do with the shape of the matrix
-            var laplacianImage = medianBlurredImage.Laplacian(MatType.CV_8U, 5);
+            Mat laplacianImage = medianBlurredImage.Laplacian(MatType.CV_8U, 5);
 
             // Computes mean value (_) and standard deviation (sd) for image
             Cv2.MeanStdDev(laplacianImage, out _, out Scalar sd);
@@ -770,25 +759,25 @@ namespace Functions
             return sd[0] * sd[0];
         }
 
-        public static double existingOldSharpness(string image)
+        public static double ExistingOldSharpness(string image)
         /*  Calculates the sharpness of an image through an older, already
             implemented method. The only difference lies in the laplacian
             typing. */
         {
             // Source is old local sharpness test code
             // Grayscale
-            Mat image_color = Cv2.ImRead(image);
+            Mat imageColor = Cv2.ImRead(image);
             Mat src = new Mat();
-            Cv2.CvtColor(image_color, src, ColorConversionCodes.BGR2GRAY);
+            Cv2.CvtColor(imageColor, src, ColorConversionCodes.BGR2GRAY);
 
             // Apply Median filter using kernel size of 5
             // Kernel size of 5 probably means a 5x5 kernel
-            var medianBlurredImage = src.MedianBlur(5);
+            Mat medianBlurredImage = src.MedianBlur(5);
 
             // Apply Laplacian using kernel size of 5
             // The CV_8U, for argument ddepth, defines the type of data that is stored,
             //  in this Unsigned Char; It has nothing to do with the shape of the matrix
-            var laplacianImage = medianBlurredImage.Laplacian(MatType.CV_32F, 3);
+            Mat laplacianImage = medianBlurredImage.Laplacian(MatType.CV_32F, 3);
 
             // Computes mean value (_) and standard deviation (sd) for image
             Cv2.MeanStdDev(laplacianImage, out _, out Scalar sd);
