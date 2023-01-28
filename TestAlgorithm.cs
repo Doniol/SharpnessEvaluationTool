@@ -10,11 +10,14 @@ namespace Sharpness
     public class TestAlgorithm
     /*  Class for handling test algorithms. */
     {
-        private Func<string, double> _method;
         public Dictionary<string, double> Results { get; set; }
         public string Name { get; }
-        private Stopwatch _stopWatch;
         public double TimeSpan { get; set; }
+
+        private Func<string, double> _method;
+        private Stopwatch _stopWatch;
+
+
 
         public TestAlgorithm(Func<string, double> method, string name)
         /*  Method refers to the algorithm that must be executed through
