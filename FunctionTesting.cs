@@ -14,7 +14,7 @@ namespace Sharpness
         /*  This function tests all created functions using the given testset */
         {
             // Create array for all the to be executed algorithms
-            TestAlgorithm[] allAlgo = new TestAlgorithm[13] {
+            TestAlgorithm[] allAlgo = new TestAlgorithm[14] {
                 new TestAlgorithm(Functions.Laplace, "laplace"),
                 new TestAlgorithm(Functions.BlurLaplace, "blurLaplace"),
                 new TestAlgorithm(Functions.BlurLaplaceSum, "blurLaplaceSum"),
@@ -24,6 +24,7 @@ namespace Sharpness
                 new TestAlgorithm(Functions.TenegradSobel, "tenegradSobel"),
                 new TestAlgorithm(Functions.SobelVariance, "sobelVariance"),
                 new TestAlgorithm(Functions.Canny, "canny"),
+                new TestAlgorithm(Functions.CannyMean, "cannyAverage"),
                 new TestAlgorithm(Functions.GreyVariance, "greyVariance"),
                 new TestAlgorithm(Functions.EdgeWidth, "edgeWidth"),
                 new TestAlgorithm(Functions.ExistingSharpness, "existingSharpness"),

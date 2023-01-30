@@ -373,6 +373,44 @@ namespace Sharpness
             return Cv2.Sum(dst)[0];
         }
 
+        public static double CannyMean(string image)
+        /*  This function applies the canny method of calculating edges,
+            and uses this in concert with a custom threshold, to determine
+            the sharpness of an image. Instead of just summing the canny
+            results however, this function calculates the mean of these
+            results. */
+        {
+            // Grayscale
+            Mat imageColor = Cv2.ImRead(image);
+            Mat src = new Mat();
+            Cv2.CvtColor(imageColor, src, ColorConversionCodes.BGR2GRAY);
+
+            // Mean gradient magnitude
+            Mat Gx = new Mat();
+            Mat Gy = new Mat();
+            // Apply Sobel
+            Cv2.Sobel(src, Gx, MatType.CV_32F, 1, 0);
+            Cv2.ConvertScaleAbs(Gx, Gx);
+            Cv2.Sobel(src, Gy, MatType.CV_32F, 0, 1);
+            Cv2.ConvertScaleAbs(Gy, Gy);
+            // Combine sobels
+            Mat sobel = Gx + Gy;
+
+            // Calculate mean and standard deviation
+            Cv2.MeanStdDev(sobel, out Scalar mean, out Scalar stdDev);
+
+            // Thresholds
+            double Th = mean[0] + 1.6 * stdDev[0];
+            double Tl = Th / 2;
+
+            // Canny
+            Mat dst = new Mat();
+            Cv2.Canny(src, dst, Tl, Th);
+            Cv2.MeanStdDev(dst, out Scalar dst_mean, out Scalar _);
+
+            return dst_mean[0] * dst_mean[0];
+        }
+
         // Special
         public static double GreyVariance(string image)
         /*  This is a function that calculates the image sharpness through
