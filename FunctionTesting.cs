@@ -82,13 +82,14 @@ namespace Sharpness
                     OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
 
                 // Loop through the sorted images within the dictionary
-                int i = sortedDict.Count;
+                int i = 0;
                 foreach (KeyValuePair<string, double> kvp in sortedDict)
                 {
                     // Rename and store the selected image
                     string imageLoc = newDir + Path.DirectorySeparatorChar +
                         $"{i}-{kvp.Value}.jpg";
                     File.Copy(kvp.Key, imageLoc);
+                    i++;
                 }
             }
         }

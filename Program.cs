@@ -29,7 +29,7 @@ namespace Sharpness
                 set_70_30_045 };
 
             // Select whether to run a quick test, or not
-            bool fullTest = false;
+            bool fullTest = true;
             if (fullTest)
             {
                 // Loop through all testsets
